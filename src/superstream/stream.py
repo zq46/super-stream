@@ -43,8 +43,15 @@ class Stream(Generic[T]):
     def of(*args: T) -> 'Stream[T]':
         return Stream(args)
 
-    def map(self, func: Callable[[T], R]) -> 'Stream[R]':
-        return Stream(map(func, self._stream))
+    def map(self, func: Callable[[T], R], map_method=map) -> 'Stream[R]':
+        """
+        :param map_method: a map method of a multiple processing pool
+        >>> pool = multiprocessing.Pool()
+        >>> Stream(range(9)).map(factorial, pool.map).to_list()
+        [1, 1, 2, 6, 24, 120, 720, 5040, 40320]
+        >>> pool.close()
+        """
+        return Stream(map_method(func, self._stream))
 
     def star_map(self, func: Callable[..., R]) -> 'Stream[R]':
         return Stream(starmap(func, self._stream))
