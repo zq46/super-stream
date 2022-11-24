@@ -10,6 +10,11 @@ U = TypeVar('U')
 
 _initial_missing = object()
 
+def side_effect(func, iterable):
+    for item in iterable:
+        func(item)
+        yield item
+
 class Stream(Generic[T]):
     def __init__(self, stream: Iterable[T]):
         self._stream = iter(stream)
@@ -35,6 +40,11 @@ class Stream(Generic[T]):
 
     def for_each(self, func: Callable[[T], None]) -> None:
         deque(map(func, self._stream), maxlen=0)
+
+    def peek(self, func: Callable[[T], None]) -> 'Stream[T]':
+        if func is None:
+            return self
+        return Stream(side_effect(func, self._stream))
 
     def distinct(self):
         return Stream(list(dict.fromkeys(self._stream)))
